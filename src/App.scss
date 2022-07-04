@@ -1,0 +1,118 @@
+$bg-color: #1b1e23;
+$left-color: red;
+$size: 80vmin;
+$white: #f4eed7;
+$feature : #4b9aaa;
+
+html,
+body {
+  margin: 0; 
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: $bg-color;
+  font-family: sans-serif;
+  color: white;
+}
+
+@keyframes blinking-background {
+  0%, 40% {
+    background-color: rgba($left-color, 0);
+  }
+  50%, 90% {
+    background-color: rgba($left-color, 0.5);
+  }
+}
+
+#root {
+  height: 100%;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+
+  &.finished {
+    animation: blinking-background 3s ease infinite;
+  }
+}
+
+.clock {
+  &__container {
+    height: $size;
+    width: $size;
+    border-radius: #{$size / 2};
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+  &__indicator__wrapper {
+    transform: translate(-#{($size / 2)}, #{($size / 2)});
+  }
+  &__indicator {
+    position: absolute;
+    left: calc(50% - 2px);
+    width: 2px;
+    background: $white;
+    transform-origin: bottom center;
+    z-index: 2;
+    border: 1px solid $feature;
+    &:nth-of-type(5n) {
+      width: 6px;
+    }
+  }
+  &__axis {
+    background: $feature;
+    width: 5px;
+    height: 5px;
+    border-radius: 3px;
+    position: absolute;
+    z-index: 4;
+    top: #{$size / 2}; 
+  }
+  &__progress__wrapper {
+    transition: transform ease 0.3s;
+  }
+  &__progress__left, &__progress__right {
+    width: #{($size / 2)};
+    height: $size;
+    top: 2.5px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+    &:before {
+      height: inherit;
+      width: inherit;
+      position: absolute;
+      content: "";
+      background-color: $left-color;
+    }
+  }
+  &__progress__left:before {
+    border-radius: #{($size / 2)} 0 0 #{($size / 2)};
+    transform-origin: 100% 50%;
+    transform: rotate(#{var(--degree)});
+  }
+  &__progress__right:before {
+    border-radius: 0 #{($size / 2)} #{($size / 2)} 0;
+    transform-origin: 0 50%;
+    transform: rotate(#{var(--degree)});
+  }
+}
+
+@for $i from 1 through 60 {
+  section:nth-of-type(#{$i}) {
+    transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size / 2)});
+  }
+}
+
+@keyframes time {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
