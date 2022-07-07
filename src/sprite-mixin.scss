@@ -1,0 +1,36 @@
+
+@mixin img-light-black {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 0 0;
+}
+
+@mixin img-light-white {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 128 0;
+}
+
+@mixin img-mute-black {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 0 128;
+}
+
+@mixin img-mute-white {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 128 128;
+}
+
+@mixin img-volume-black {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 256 0;
+}
+
+@mixin img-volume-white {
+  width: 128px;
+  height: 128px;
+  background: url('/sprites.png') 256 128;
+}

@@ -12,7 +12,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "firebase deploy"
+    "deploy": "firebase deploy",
+    "sprite": "node scripts/make-sprite.js"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +53,7 @@
     "prettier": "^2.3.2",
     "react-scripts": "5.0.1",
     "sass": "^1.53.0",
+    "spritesmith": "^3.4.0",
     "stylelint": "^13.13.1",
     "stylelint-config-standard": "^22.0.0",
     "stylelint-order": "^4.1.0",
