@@ -190,15 +190,10 @@ const App = () => {
     const touchEventNames = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const
     if (isTouchDevice) {
       touchEventNames.forEach((eventName) => window.addEventListener(eventName, touchHandler))
+      return () => touchEventNames.forEach((eventName) => window.removeEventListener(eventName, touchHandler))
     } else {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
-    }
-    return () => {
-      if (isTouchDevice) {
-        touchEventNames.forEach((eventName) => window.removeEventListener(eventName, touchHandler))
-      } else {
-        mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
-      }
+      return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
   }, [isFinished, setLeftSeconds])
 
@@ -206,21 +201,22 @@ const App = () => {
     <div className={`App ${isFinished ? 'finished' : ''}`}>
       <div className="clock__container">
         <div className="clock__axis" />
-        <div
-          className="clock__progress__wrapper"
-          style={{
-            transform: enabled && !editing ? 'scale(0.99)' : 'scale(0.93)',
-            visibility: isFinished ? 'hidden' : 'inherit',
-          }}>
-          <div className={`clock__progress__left`} ref={clockProcessLeftRef} />
-          <div className={`clock__progress__right`} ref={clockProcessRightRef} />
-        </div>
         <div className="clock__indicator__wrapper">
           {Array.from({ length: 60 }).map((_, offset) => (
             <section key={offset} className="clock__indicator" />
           ))}
         </div>
+        <div
+          className="clock__progress__wrapper"
+          style={{
+            transform: enabled && !editing ? 'scale(1)' : 'scale(0.93)',
+            visibility: isFinished ? 'hidden' : 'inherit',
+          }}>
+          <div className={`clock__progress__left`} ref={clockProcessLeftRef} />
+          <div className={`clock__progress__right`} ref={clockProcessRightRef} />
+        </div>
       </div>
+      <img className="button1" />
     </div>
   )
 }

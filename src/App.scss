@@ -1,8 +1,15 @@
+@import 'sprite-mixin.scss';
+
 $bg-color: #1b1e23;
-$left-color: red;
+$left-time-color: red;
 $size: 80vmin;
 $white: #f4eed7;
 $feature : #4b9aaa;
+
+$big-indicator-width: 0.03;
+$big-indicator-height: 0.007;
+$small-indicator-width: 0.01;
+$small-indicator-height: 0.003;
 
 html,
 body {
@@ -18,10 +25,10 @@ body {
 
 @keyframes blinking-background {
   0%, 40% {
-    background-color: rgba($left-color, 0);
+    background-color: rgba($left-time-color, 0);
   }
   50%, 90% {
-    background-color: rgba($left-color, 0.5);
+    background-color: rgba($left-time-color, 0.5);
   }
 }
 
@@ -45,37 +52,39 @@ body {
   &__container {
     height: $size;
     width: $size;
-    border-radius: #{$size / 2};
     display: flex;
     justify-content: center;
     position: relative;
   }
   &__indicator__wrapper {
-    transform: translate(-#{($size / 2)}, #{($size / 2)});
+    transform: translate(#{($size / 2)}, #{($size / 2)});
   }
   &__indicator {
     position: absolute;
-    left: calc(50% - 2px);
-    width: 2px;
-    background: $white;
-    transform-origin: bottom center;
+    width: #{($size * $small-indicator-width)};
+    left: #{-($size * $small-indicator-width / 2)};
+    height: #{($size * $small-indicator-height)};
+    background: $feature;
     z-index: 2;
-    border: 1px solid $feature;
     &:nth-of-type(5n) {
-      width: 6px;
+      width: #{($size * $big-indicator-width)};
+      left: #{-($size * $big-indicator-width / 2)};
+      height: #{($size * $big-indicator-height)};
     }
   }
   &__axis {
+    position: absolute;
     background: $feature;
     width: 5px;
     height: 5px;
     border-radius: 3px;
-    position: absolute;
     z-index: 4;
-    top: #{$size / 2}; 
+    top: #{($size * 0.5)};
+    left: #{($size * 0.5 - 1 * 0.5)};
   }
   &__progress__wrapper {
     transition: transform ease 0.3s;
+    opacity: 0.6;
   }
   &__progress__left, &__progress__right {
     width: #{($size / 2)};
@@ -84,13 +93,13 @@ body {
     display: inline-block;
     position: relative;
     overflow: hidden;
-    z-index: 2;
+    z-index: 3;
     &:before {
       height: inherit;
       width: inherit;
       position: absolute;
       content: "";
-      background-color: $left-color;
+      background-color: $left-time-color;
     }
   }
   &__progress__left:before {
@@ -107,7 +116,7 @@ body {
 
 @for $i from 1 through 60 {
   section:nth-of-type(#{$i}) {
-    transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size / 2)});
+    transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size * 0.5)});
   }
 }
 
