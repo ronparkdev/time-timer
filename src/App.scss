@@ -42,6 +42,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100%;
+  user-select: none;
 
   &.finished {
     animation: blinking-background 3s ease infinite;
@@ -70,6 +71,28 @@ body {
       width: #{($size * $big-indicator-width)};
       left: #{-($size * $big-indicator-width / 2)};
       height: #{($size * $big-indicator-height)};
+    }
+    @for $i from 1 through 60 {
+      &:nth-of-type(#{$i}) {
+        transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size * 0.5)});
+      }
+    }
+  }
+  &__label__wrapper {
+    transform: translate(#{($size / 2)}, #{($size / 2)});
+  }
+  &__label {
+    position: absolute;
+    font-size: #{($size * 0.055)};
+    @for $i from 1 through 60 {
+      &:nth-of-type(#{$i}) {
+        transform: 
+          translateX(-50%) 
+          translateY(-50%) 
+          rotateZ(calc(30deg - 30deg * #{$i})) 
+          translateY(-#{($size * 0.56)}) 
+          rotateZ(calc(30deg * #{$i} - 30deg));
+      }
     }
   }
   &__axis {
@@ -114,11 +137,6 @@ body {
   }
 }
 
-@for $i from 1 through 60 {
-  section:nth-of-type(#{$i}) {
-    transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size * 0.5)});
-  }
-}
 
 @keyframes time {
   to {

@@ -206,6 +206,13 @@ const App = () => {
             <section key={offset} className="clock__indicator" />
           ))}
         </div>
+        <div className="clock__label__wrapper">
+          {Array.from({ length: 12 }).map((_, offset) => (
+            <section key={offset} className="clock__label">
+              {offset * 5}
+            </section>
+          ))}
+        </div>
         <div
           className="clock__progress__wrapper"
           style={{
