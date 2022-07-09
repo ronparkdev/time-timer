@@ -11,7 +11,9 @@ const files = fs
   .filter((file) => path.extname(file).toLowerCase() === '.png')
 
 Spritesmith.run({ src: files }, (err, result) => {
-  const { image, coordinates } = result
+  const { image, coordinates, properties } = result
+
+  const { width: spriteWidth, height: spriteHeight } = properties
 
   fs.writeFileSync('src/sprites.png', image)
 
@@ -20,11 +22,18 @@ Spritesmith.run({ src: files }, (err, result) => {
       const key = removeExtension(path.basename(file).replaceAll('_', '-'))
       const { x, y, width, height } = coordinates[file]
 
+      const col = x / width
+      const row = y / height
+
+      const cols = spriteWidth / width
+      const rows = spriteHeight / height
+
       return `
 @mixin img-${key} {
-  width: ${width}px;
-  height: ${height}px;
-  background: url('/sprites.png') ${x} ${y};
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: ${(col / (cols - 1)) * 100}% ${(row / (rows - 1)) * 100}%;
+  background-size: ${cols * 100}% ${rows * 100}%;
 }
 `
     })
