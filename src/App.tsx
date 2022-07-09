@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
 import { PointUtils } from './utils/point'
@@ -11,9 +12,17 @@ const App = () => {
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
   const [isFinished, setFinished] = useState<boolean>(false)
+  const [isSoundOn, setSoundOn] = useLocalStorage('sound', true)
+
+  const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [theme, setTheme] = useLocalStorage('theme', defaultDark ? 'dark' : 'light')
 
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    document.body.dataset.theme = theme
+  }, [theme])
 
   const setLeftSeconds = useCallback(
     (leftSeconds: number) => {
@@ -109,22 +118,24 @@ const App = () => {
           break
         }
         case 'up': {
-          isTouchDown = false
+          if (isTouchDown) {
+            isTouchDown = false
 
-          const distance = PointUtils.getDistance(diff.clientX, diff.clientY)
-          if (distance < 3) {
-            if (isFinished) {
-              setLeftSeconds(10 * 60)
-              setEnabled(false)
+            const distance = PointUtils.getDistance(diff.clientX, diff.clientY)
+            if (distance < 3) {
+              if (isFinished) {
+                setLeftSeconds(10 * 60)
+                setEnabled(false)
+              } else {
+                setEnabled((enabled) => !enabled)
+              }
             } else {
-              setEnabled((enabled) => !enabled)
+              setEnabled(true)
             }
-          } else {
-            setEnabled(true)
+            setFinished(false)
+            setEditing(false)
+            break
           }
-          setFinished(false)
-          setEditing(false)
-          break
         }
       }
       prev = { clientX, clientY }
@@ -198,7 +209,7 @@ const App = () => {
   }, [isFinished, setLeftSeconds])
 
   return (
-    <div className={`App ${isFinished ? 'finished' : ''}`}>
+    <div className={`App ${isFinished ? 'finished' : ''}`} data-theme={theme}>
       <div className="clock__container">
         <div className="clock__axis" />
         <div className="clock__indicator__wrapper">
@@ -223,7 +234,10 @@ const App = () => {
           <div className={`clock__progress__right`} ref={clockProcessRightRef} />
         </div>
       </div>
-      <img className="button1" />
+      <div className="button__group">
+        <button className={`button__sound ${isSoundOn ? 'on' : 'off'}`} onClick={() => setSoundOn((prev) => !prev)} />
+        <button className="button__theme" onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />
+      </div>
     </div>
   )
 }

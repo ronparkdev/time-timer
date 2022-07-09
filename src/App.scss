@@ -1,11 +1,20 @@
 @import 'sprite-mixin.scss';
 
-$bg-color: #1b1e23;
-$left-time-color: red;
-$size: 80vmin;
-$white: #f4eed7;
-$feature : #4b9aaa;
+body,
+body[data-theme="light"] {
+  --bg-color: #fff;
+  --font-color: #1b1e23;
+  --left-time-color: red;
+  --feature-color : #4b9aaa;
+}
+body[data-theme="dark"] {
+  --bg-color: #1b1e23;
+  --font-color: #fff;
+  --left-time-color: red;
+  --feature-color : #4b9aaa;
+}
 
+$size: 80vmin;
 $big-indicator-width: 0.03;
 $big-indicator-height: 0.007;
 $small-indicator-width: 0.01;
@@ -18,17 +27,26 @@ body {
   overflow: hidden;
 }
 body {
-  background: $bg-color;
+  transition: background-color ease 0.3s, color ease 0.3s;
+  background: var(--bg-color);
   font-family: sans-serif;
-  color: white;
+  color: var(--font-color);
+}
+button{
+  background: inherit; 
+  border:none; 
+  box-shadow:none; 
+  border-radius:0; 
+  padding:0; 
+  overflow:visible; 
 }
 
 @keyframes blinking-background {
   0%, 40% {
-    background-color: rgba($left-time-color, 0);
+    background-color: rgba(var(--left-time-color), 0);
   }
   50%, 90% {
-    background-color: rgba($left-time-color, 0.5);
+    background-color: rgba(var(--left-time-color), 0.5);
   }
 }
 
@@ -65,7 +83,7 @@ body {
     width: #{($size * $small-indicator-width)};
     left: #{-($size * $small-indicator-width / 2)};
     height: #{($size * $small-indicator-height)};
-    background: $feature;
+    background: var(--feature-color);
     z-index: 2;
     &:nth-of-type(5n) {
       width: #{($size * $big-indicator-width)};
@@ -97,7 +115,7 @@ body {
   }
   &__axis {
     position: absolute;
-    background: $feature;
+    background: var(--feature-color);
     width: 5px;
     height: 5px;
     border-radius: 3px;
@@ -122,7 +140,7 @@ body {
       width: inherit;
       position: absolute;
       content: "";
-      background-color: $left-time-color;
+      background-color: var(--left-time-color);
     }
   }
   &__progress__left:before {
@@ -137,9 +155,49 @@ body {
   }
 }
 
-
 @keyframes time {
   to {
     transform: rotateZ(360deg);
+  }
+}
+
+.button {
+  &__group {
+    position: fixed;
+    margin: #{($size * 0.03)};
+    bottom: 0;
+    right: 0;
+  }
+  &__sound {
+    width: #{($size * 0.08)};
+    height: #{($size * 0.08)};
+    &.on {
+      @include img-volume-black;
+    }
+    &.off {
+      @include img-mute-black;
+    }
+  }
+  &__theme {
+    margin-left: #{($size * 0.03)};
+    width: #{($size * 0.08)};
+    height: #{($size * 0.08)};
+    @include img-light-black;
+  }
+}
+
+[data-theme='dark'] {
+  .button {
+    &__sound {
+      &.on {
+        @include img-volume-white;
+      }
+      &.off {
+        @include img-mute-white;
+      }
+    }
+    &__theme {
+      @include img-light-white;
+    }
   }
 }
