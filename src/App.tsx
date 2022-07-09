@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
+import useTheme from './hooks/useTheme'
 import { PointUtils } from './utils/point'
 
 const MIN_LEFT_SECONDS = 60 * 1
@@ -14,15 +15,10 @@ const App = () => {
   const [isFinished, setFinished] = useState<boolean>(false)
   const [isSoundOn, setSoundOn] = useLocalStorage('sound', true)
 
-  const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const [theme, setTheme] = useLocalStorage('theme', defaultDark ? 'dark' : 'light')
+  const { toggleTheme } = useTheme()
 
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    document.body.dataset.theme = theme
-  }, [theme])
 
   const setLeftSeconds = useCallback(
     (leftSeconds: number) => {
@@ -209,7 +205,7 @@ const App = () => {
   }, [isFinished, setLeftSeconds])
 
   return (
-    <div className={`App ${isFinished ? 'finished' : ''}`} data-theme={theme}>
+    <div className={`App ${isFinished ? 'finished' : ''}`}>
       <div className="clock__container">
         <div className="clock__axis" />
         <div className="clock__indicator__wrapper">
@@ -236,7 +232,7 @@ const App = () => {
       </div>
       <div className="button__group">
         <button className={`button__sound ${isSoundOn ? 'on' : 'off'}`} onClick={() => setSoundOn((prev) => !prev)} />
-        <button className="button__theme" onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />
+        <button className="button__theme" onClick={toggleTheme} />
       </div>
     </div>
   )

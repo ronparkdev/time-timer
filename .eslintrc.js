@@ -42,5 +42,7 @@ module.exports = {
         additionalHooks: 'useRecoilCallback',
       },
     ],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
   },
 }
