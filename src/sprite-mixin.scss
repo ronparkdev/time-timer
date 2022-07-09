@@ -1,36 +1,42 @@
 
 @mixin img-light-black {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 0 0;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 300% 200%;
 }
 
 @mixin img-light-white {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 128 0;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 50% 0%;
+  background-size: 300% 200%;
 }
 
 @mixin img-mute-black {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 0 128;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 0% 100%;
+  background-size: 300% 200%;
 }
 
 @mixin img-mute-white {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 128 128;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 50% 100%;
+  background-size: 300% 200%;
 }
 
 @mixin img-volume-black {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 256 0;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 100% 0%;
+  background-size: 300% 200%;
 }
 
 @mixin img-volume-white {
-  width: 128px;
-  height: 128px;
-  background: url('/sprites.png') 256 128;
+  background-image: url('/sprites.png');
+  background-repeat: no-repeat;
+  background-position: 100% 100%;
+  background-size: 300% 200%;
 }
