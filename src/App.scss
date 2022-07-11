@@ -167,6 +167,7 @@ button{
     margin: #{($size * 0.03)};
     bottom: 0;
     right: 0;
+    user-select: auto;
   }
   &__sound {
     width: #{($size * 0.08)};
