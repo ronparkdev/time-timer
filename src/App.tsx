@@ -5,6 +5,7 @@ import './App.scss'
 import tickSoundUri from './assets/tick.wav'
 import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
+import { AnimationUtils, EaseFuncs } from './utils/animation'
 import { PointUtils } from './utils/point'
 
 const MIN_LEFT_SECONDS = 60 * 1
@@ -12,7 +13,7 @@ const MAX_LEFT_SECONDS = 60 * 60
 const DEFAULT_LEFT_SECONDS = 10 * 60
 
 const App = () => {
-  const [lastSeconds, setLastSeconds] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
+  const [lastMinutes, setLastMinutes] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
   const leftSecondsRef = useRef<number>(DEFAULT_LEFT_SECONDS)
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
@@ -26,28 +27,37 @@ const App = () => {
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
   const setLeftSeconds = useCallback(
-    (leftSeconds: number) => {
-      leftSecondsRef.current = leftSeconds
-      const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
+    async (leftSeconds: number, animated: boolean = false) => {
+      const update = (leftSeconds: number) => {
+        leftSecondsRef.current = leftSeconds
+        const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
 
-      const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
-      const rightDeg = `${Math.min(0.5, 1 - progress) * 360}deg`
+        const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
+        const rightDeg = `${Math.min(0.5, 1 - progress) * 360}deg`
 
-      const leftStyle = clockProcessLeftRef.current?.style
-      const rightStyle = clockProcessRightRef.current?.style
+        const leftStyle = clockProcessLeftRef.current?.style
+        const rightStyle = clockProcessRightRef.current?.style
 
-      if (leftStyle?.getPropertyValue('--degree') !== leftDeg) {
-        leftStyle?.setProperty('--degree', leftDeg)
+        if (leftStyle?.getPropertyValue('--degree') !== leftDeg) {
+          leftStyle?.setProperty('--degree', leftDeg)
+        }
+        if (rightStyle?.getPropertyPriority('--degree') !== rightDeg) {
+          rightStyle?.setProperty('--degree', rightDeg)
+        }
       }
-      if (rightStyle?.getPropertyPriority('--degree') !== rightDeg) {
-        rightStyle?.setProperty('--degree', rightDeg)
+
+      if (animated) {
+        const prevLeftSeconds = leftSecondsRef.current
+        await AnimationUtils.animate(prevLeftSeconds, leftSeconds, 100, EaseFuncs.easeInQuad, update)
+      } else {
+        update(leftSeconds)
       }
     },
     [leftSecondsRef],
   )
 
   useEffect(() => {
-    setLeftSeconds(lastSeconds)
+    setLeftSeconds(lastMinutes)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setLeftSeconds])
 
@@ -59,12 +69,11 @@ const App = () => {
     if (enabled && !editing) {
       const t = setInterval(() => {
         const leftSeconds = leftSecondsRef.current
-        const nextLeftSeconds = Math.max(0, leftSeconds - 1)
+        const nextLeftSeconds = Math.max(0, leftSeconds - 500)
         if (nextLeftSeconds <= 0) {
           setFinished(true)
         }
         setLeftSeconds(nextLeftSeconds)
-        console.log(nextLeftSeconds)
       }, 1000)
 
       return () => clearInterval(t)
@@ -93,7 +102,7 @@ const App = () => {
       return PointUtils.getDistance(clientX - clientWidth / 2, clientY - clientHeight / 2)
     }
 
-    const handler = (clientX: number, clientY: number, type: 'down' | 'move' | 'up') => {
+    const handler = async (clientX: number, clientY: number, type: 'down' | 'move' | 'up') => {
       const leftSeconds = leftSecondsRef.current
 
       switch (type) {
@@ -140,15 +149,17 @@ const App = () => {
             const distance = PointUtils.getDistance(diff.clientX, diff.clientY)
             if (distance < 3) {
               if (isFinished) {
-                setLeftSeconds(lastSeconds)
+                setLeftSeconds(lastMinutes, true)
                 setEnabled(false)
               } else {
                 setEnabled((enabled) => !enabled)
               }
             } else {
               setEnabled(true)
-              setLastSeconds(leftSeconds)
-              console.log(leftSeconds)
+
+              const minutes = Math.round(leftSeconds / 60)
+              setLastMinutes(minutes)
+              await setLeftSeconds(minutes * 60, true)
             }
             setFinished(false)
             setEditing(false)
@@ -222,7 +233,7 @@ const App = () => {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
       return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
-  }, [lastSeconds, isFinished, setLastSeconds, handleAfterUserInteraction, playSound, setLeftSeconds])
+  }, [lastMinutes, isFinished, setLastMinutes, handleAfterUserInteraction, playSound, setLeftSeconds])
 
   return (
     <div className={`App ${isFinished ? 'finished' : ''}`}>
