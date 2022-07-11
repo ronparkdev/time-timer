@@ -9,9 +9,11 @@ import { PointUtils } from './utils/point'
 
 const MIN_LEFT_SECONDS = 60 * 1
 const MAX_LEFT_SECONDS = 60 * 60
+const DEFAULT_LEFT_SECONDS = 10 * 60
 
 const App = () => {
-  const leftSecondsRef = useRef<number>(10 * 60)
+  const [lastSeconds, setLastSeconds] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
+  const leftSecondsRef = useRef<number>(DEFAULT_LEFT_SECONDS)
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
   const [isFinished, setFinished] = useState<boolean>(false)
@@ -44,6 +46,11 @@ const App = () => {
     [leftSecondsRef],
   )
 
+  useEffect(() => {
+    setLeftSeconds(lastSeconds)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setLeftSeconds])
+
   useLayoutEffect(() => {
     setLeftSeconds(10 * 60)
   }, [setLeftSeconds])
@@ -57,6 +64,7 @@ const App = () => {
           setFinished(true)
         }
         setLeftSeconds(nextLeftSeconds)
+        console.log(nextLeftSeconds)
       }, 1000)
 
       return () => clearInterval(t)
@@ -86,6 +94,8 @@ const App = () => {
     }
 
     const handler = (clientX: number, clientY: number, type: 'down' | 'move' | 'up') => {
+      const leftSeconds = leftSecondsRef.current
+
       switch (type) {
         case 'down': {
           const { clientWidth } = document.documentElement
@@ -108,7 +118,6 @@ const App = () => {
               diffDig += 360
             }
 
-            const leftSeconds = leftSecondsRef.current
             const nextLeftSeconds = Math.max(
               MIN_LEFT_SECONDS,
               Math.min(MAX_LEFT_SECONDS, Math.floor(leftSeconds - (diffDig / 360) * 3600)),
@@ -131,13 +140,15 @@ const App = () => {
             const distance = PointUtils.getDistance(diff.clientX, diff.clientY)
             if (distance < 3) {
               if (isFinished) {
-                setLeftSeconds(10 * 60)
+                setLeftSeconds(lastSeconds)
                 setEnabled(false)
               } else {
                 setEnabled((enabled) => !enabled)
               }
             } else {
               setEnabled(true)
+              setLastSeconds(leftSeconds)
+              console.log(leftSeconds)
             }
             setFinished(false)
             setEditing(false)
@@ -211,7 +222,7 @@ const App = () => {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
       return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
-  }, [handleAfterUserInteraction, playSound, isFinished, setLeftSeconds])
+  }, [lastSeconds, isFinished, setLastSeconds, handleAfterUserInteraction, playSound, setLeftSeconds])
 
   return (
     <div className={`App ${isFinished ? 'finished' : ''}`}>
