@@ -4,17 +4,9 @@ declare global {
   }
 }
 
-const requestAudioContext = (): Promise<AudioContext | null> => {
-  return navigator.mediaDevices
-    .getUserMedia({ audio: true })
-    .then(() => {
-      AudioContext = window.AudioContext || window.webkitAudioContext
-      return new AudioContext()
-    })
-    .catch((e) => {
-      console.error(`Audio permissions denied: ${e}`)
-      return null
-    })
+const createAudioContext = (): AudioContext => {
+  const AudioContext = window.AudioContext || window.webkitAudioContext
+  return new AudioContext()
 }
 
-export const AudioUtils = { requestAudioContext }
+export const AudioUtils = { createAudioContext }

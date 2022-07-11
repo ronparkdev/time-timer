@@ -16,7 +16,7 @@ const App = () => {
   const [editing, setEditing] = useState<boolean>(false)
   const [isFinished, setFinished] = useState<boolean>(false)
   const [isSoundOn, setSoundOn] = useLocalStorage('sound', false)
-  const { play: playSound } = useSound(isSoundOn)
+  const { play: playSound, handleAfterUserInteraction } = useSound(isSoundOn)
 
   const { toggleTheme } = useTheme()
 
@@ -64,6 +64,10 @@ const App = () => {
   }, [enabled, editing, setFinished, setLeftSeconds])
 
   useEffect(() => {
+    if (handleAfterUserInteraction) {
+      return
+    }
+
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 
     let isTouchDown = false
@@ -207,7 +211,7 @@ const App = () => {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
       return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
-  }, [playSound, isFinished, setLeftSeconds])
+  }, [handleAfterUserInteraction, playSound, isFinished, setLeftSeconds])
 
   return (
     <div className={`App ${isFinished ? 'finished' : ''}`}>
@@ -244,6 +248,11 @@ const App = () => {
         />
         <button className="button__theme" onClick={toggleTheme} />
       </div>
+      {handleAfterUserInteraction && (
+        <div className="guide_user_interaction" onClick={() => handleAfterUserInteraction()}>
+          Click to play
+        </div>
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AudioUtils } from '../utils/audio'
@@ -5,21 +6,26 @@ import { AudioUtils } from '../utils/audio'
 const useSound = (soundOn: boolean) => {
   const bufferMapRef = useRef<{ [src: string]: AudioBuffer }>({})
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null)
+  const [needUserInteraction, setNeedUserInteraction] = useState<boolean>(false)
 
   useEffect(() => {
-    const replaceAudioContext = (audioContext: AudioContext | null) => {
-      setAudioContext((prevAudioContext) => {
-        if (prevAudioContext !== audioContext) {
-          prevAudioContext?.close()
-        }
-        return audioContext
-      })
+    if (audioContext?.state === 'suspended') {
+      setNeedUserInteraction(true)
     }
+  }, [soundOn, audioContext])
 
+  const handleAfterUserInteraction = useCallback(async () => {
+    if (audioContext) {
+      await audioContext.resume()
+      setNeedUserInteraction(false)
+    }
+  }, [audioContext])
+
+  useEffect(() => {
     if (soundOn) {
-      AudioUtils.requestAudioContext().then(replaceAudioContext)
+      setAudioContext(AudioUtils.createAudioContext())
     } else {
-      replaceAudioContext(null)
+      setAudioContext(null)
     }
   }, [soundOn, setAudioContext])
 
@@ -52,7 +58,7 @@ const useSound = (soundOn: boolean) => {
     [audioContext, fetchBuffer],
   )
 
-  return { play }
+  return { play, handleAfterUserInteraction: needUserInteraction ? handleAfterUserInteraction : null }
 }
 
 export default useSound
