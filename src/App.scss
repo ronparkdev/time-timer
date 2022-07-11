@@ -5,12 +5,14 @@ body[data-theme="light"] {
   --bg-color: #fff;
   --font-color: #1b1e23;
   --left-time-color: red;
+  --left-time-rgb: 255, 0, 0;
   --feature-color : #4b9aaa;
 }
 body[data-theme="dark"] {
   --bg-color: #1b1e23;
   --font-color: #fff;
   --left-time-color: red;
+  --left-time-rgb: 255, 0, 0;
   --feature-color : #4b9aaa;
 }
 
@@ -43,10 +45,10 @@ button{
 
 @keyframes blinking-background {
   0%, 40% {
-    background-color: rgba(var(--left-time-color), 0);
+    background-color: rgba(var(--left-time-rgb), 0);
   }
   50%, 90% {
-    background-color: rgba(var(--left-time-color), 0.5);
+    background-color: rgba(var(--left-time-rgb), 0.5);
   }
 }
 
