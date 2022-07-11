@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
 import tickSoundUri from './assets/tick.wav'
 import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
+import useTouch, { TouchHandler } from './hooks/useTouch'
 import { AnimationUtils, EaseFuncs } from './utils/animation'
 import { PointUtils } from './utils/point'
 
@@ -12,12 +13,30 @@ const MIN_LEFT_SECONDS = 60 * 1
 const MAX_LEFT_SECONDS = 60 * 60
 const DEFAULT_LEFT_SECONDS = 10 * 60
 
+const getLeftSecondsFromNow = (date: Date) => (date.getTime() - new Date().getTime()) / 1000
+
+const getSecondsNearestMinute = (seconds: number) => Math.round(seconds / 60) * 60
+
+const getDegreeFromClientCenter = (clientX: number, clientY: number) => {
+  const { clientWidth, clientHeight } = document.documentElement
+  return PointUtils.getDegree(clientX - clientWidth / 2, clientY - clientHeight / 2)
+}
+
+const getDistanceFromClientCenter = (clientX: number, clientY: number) => {
+  const { clientWidth, clientHeight } = document.documentElement
+  return PointUtils.getDistance(clientX - clientWidth / 2, clientY - clientHeight / 2)
+}
+
 const App = () => {
-  const [lastMinutes, setLastMinutes] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
-  const leftSecondsRef = useRef<number>(DEFAULT_LEFT_SECONDS)
+  const [lastSeconds, setLastSeconds] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
+  const [endDate, setEndDate] = useState<Date | null>(null)
+
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
-  const [isFinished, setFinished] = useState<boolean>(false)
+  const [finished, setFinished] = useState<boolean>(false)
+
+  const editingLeftSecondsRef = useRef<number>(0)
+  const editingChangedRef = useRef<boolean>(false)
   const [isSoundOn, setSoundOn] = useLocalStorage('sound', false)
   const { play: playSound, handleAfterUserInteraction } = useSound(isSoundOn)
 
@@ -26,100 +45,72 @@ const App = () => {
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
-  const setLeftSeconds = useCallback(
-    async (leftSeconds: number, animated: boolean = false) => {
-      const update = (leftSeconds: number) => {
-        leftSecondsRef.current = leftSeconds
-        const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
+  const renderLeftSeconds = useCallback((leftSeconds: number) => {
+    const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
 
-        const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
-        const rightDeg = `${Math.min(0.5, 1 - progress) * 360}deg`
+    const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
+    const rightDeg = `${Math.min(0.5, 1 - progress) * 360}deg`
 
-        const leftStyle = clockProcessLeftRef.current?.style
-        const rightStyle = clockProcessRightRef.current?.style
+    const leftStyle = clockProcessLeftRef.current?.style
+    const rightStyle = clockProcessRightRef.current?.style
 
-        if (leftStyle?.getPropertyValue('--degree') !== leftDeg) {
-          leftStyle?.setProperty('--degree', leftDeg)
-        }
-        if (rightStyle?.getPropertyPriority('--degree') !== rightDeg) {
-          rightStyle?.setProperty('--degree', rightDeg)
-        }
-      }
-
-      if (animated) {
-        const prevLeftSeconds = leftSecondsRef.current
-        await AnimationUtils.animate(prevLeftSeconds, leftSeconds, 100, EaseFuncs.easeInQuad, update)
-      } else {
-        update(leftSeconds)
-      }
-    },
-    [leftSecondsRef],
-  )
+    if (leftStyle?.getPropertyValue('--degree') !== leftDeg) {
+      leftStyle?.setProperty('--degree', leftDeg)
+    }
+    if (rightStyle?.getPropertyPriority('--degree') !== rightDeg) {
+      rightStyle?.setProperty('--degree', rightDeg)
+    }
+  }, [])
 
   useEffect(() => {
-    setLeftSeconds(lastMinutes)
+    renderLeftSeconds(lastSeconds)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setLeftSeconds])
-
-  useLayoutEffect(() => {
-    setLeftSeconds(10 * 60)
-  }, [setLeftSeconds])
+  }, [renderLeftSeconds])
 
   useEffect(() => {
-    if (enabled && !editing) {
+    if (enabled && endDate && !editing) {
       const t = setInterval(() => {
-        const leftSeconds = leftSecondsRef.current
-        const nextLeftSeconds = Math.max(0, leftSeconds - 500)
-        if (nextLeftSeconds <= 0) {
+        const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate))
+        console.info(leftSeconds)
+        if (leftSeconds <= 0) {
           setFinished(true)
         }
-        setLeftSeconds(nextLeftSeconds)
+        renderLeftSeconds(leftSeconds)
       }, 1000)
 
       return () => clearInterval(t)
+    } else {
+      renderLeftSeconds(lastSeconds)
     }
-  }, [enabled, editing, setFinished, setLeftSeconds])
+  }, [enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
 
-  useEffect(() => {
-    if (handleAfterUserInteraction) {
-      return
-    }
-
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
-
-    let isTouchDown = false
-
-    let prev: { clientX: number; clientY: number } = { clientX: 0, clientY: 0 }
-    let diff: { clientX: number; clientY: number } = { clientX: 0, clientY: 0 }
-
-    const getDegree = (clientX: number, clientY: number) => {
-      const { clientWidth, clientHeight } = document.documentElement
-      return PointUtils.getDegree(clientX - clientWidth / 2, clientY - clientHeight / 2)
-    }
-
-    const getDistance = (clientX: number, clientY: number) => {
-      const { clientWidth, clientHeight } = document.documentElement
-      return PointUtils.getDistance(clientX - clientWidth / 2, clientY - clientHeight / 2)
-    }
-
-    const handler = async (clientX: number, clientY: number, type: 'down' | 'move' | 'up') => {
-      const leftSeconds = leftSecondsRef.current
+  const touchHandler: TouchHandler = useCallback(
+    async ({ clientX, clientY, type, prev, diff }) => {
+      if (handleAfterUserInteraction) {
+        return
+      }
 
       switch (type) {
         case 'down': {
           const { clientWidth } = document.documentElement
 
-          if (getDistance(clientX, clientY) < clientWidth * 0.4) {
-            isTouchDown = true
+          if (getDistanceFromClientCenter(clientX, clientY) < clientWidth * 0.4) {
             diff = { clientX: 0, clientY: 0 }
+
+            editingLeftSecondsRef.current = endDate
+              ? getLeftSecondsFromNow(endDate)
+              : getSecondsNearestMinute(lastSeconds)
+
+            setEndDate(null)
             setEditing(true)
+            editingChangedRef.current = false
           }
           break
         }
         case 'move': {
-          if (isTouchDown && prev) {
-            const deg = getDegree(clientX, clientY)
-            const prevDeg = getDegree(prev.clientX, prev.clientY)
+          if (prev) {
+            const deg = getDegreeFromClientCenter(clientX, clientY)
+            const prevDeg = getDegreeFromClientCenter(prev.clientX, prev.clientY)
             let diffDig = deg - prevDeg
             if (diffDig > 180) {
               diffDig -= 360
@@ -129,11 +120,23 @@ const App = () => {
 
             const nextLeftSeconds = Math.max(
               MIN_LEFT_SECONDS,
-              Math.min(MAX_LEFT_SECONDS, Math.floor(leftSeconds - (diffDig / 360) * 3600)),
+              Math.min(MAX_LEFT_SECONDS, Math.floor(editingLeftSecondsRef.current - (diffDig / 360) * 3600)),
             )
-            setLeftSeconds(nextLeftSeconds)
 
-            if (Math.floor(leftSeconds / 60) !== Math.floor(nextLeftSeconds / 60)) {
+            editingLeftSecondsRef.current = nextLeftSeconds
+
+            const leftSecondsNearestMinute = getSecondsNearestMinute(nextLeftSeconds)
+
+            if (lastSeconds !== leftSecondsNearestMinute) {
+              editingChangedRef.current = true
+              setLastSeconds(leftSecondsNearestMinute)
+              await AnimationUtils.animate(
+                lastSeconds,
+                leftSecondsNearestMinute,
+                100,
+                EaseFuncs.easeInQuad,
+                renderLeftSeconds,
+              )
               playSound(tickSoundUri)
             }
 
@@ -143,100 +146,31 @@ const App = () => {
           break
         }
         case 'up': {
-          if (isTouchDown) {
-            isTouchDown = false
-
-            const distance = PointUtils.getDistance(diff.clientX, diff.clientY)
-            if (distance < 3) {
-              if (isFinished) {
-                setLeftSeconds(lastMinutes, true)
-                setEnabled(false)
-              } else {
-                setEnabled((enabled) => !enabled)
-              }
+          if (!editingChangedRef.current) {
+            if (finished) {
+              await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
+              setEnabled(false)
             } else {
-              setEnabled(true)
-
-              const minutes = Math.round(leftSeconds / 60)
-              setLastMinutes(minutes)
-              await setLeftSeconds(minutes * 60, true)
+              setEnabled((prev) => !prev)
             }
-            setFinished(false)
-            setEditing(false)
-            break
+          } else {
+            setEnabled(true)
           }
-        }
-      }
-      prev = { clientX, clientY }
-    }
-
-    const mouseHandler = (e: MouseEvent) => {
-      const { clientX, clientY } = e
-      switch (e.type) {
-        case 'mousedown': {
-          handler(clientX, clientY, 'down')
-          break
-        }
-        case 'mousemove': {
-          handler(clientX, clientY, 'move')
-          break
-        }
-        case 'mouseup': {
-          handler(clientX, clientY, 'up')
+          const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
+          setEndDate(endDate)
+          setFinished(false)
+          setEditing(false)
           break
         }
       }
-    }
+    },
+    [finished, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
+  )
 
-    let touchId: number | null = null
-
-    const touchHandler = (e: TouchEvent) => {
-      switch (e.type) {
-        case 'touchstart': {
-          if (touchId === null) {
-            const touch = e.touches[0]
-            const { clientX, clientY } = touch
-            touchId = touch.identifier
-            handler(clientX, clientY, 'down')
-          }
-          break
-        }
-        case 'touchmove': {
-          for (let i = 0; i < e.touches.length; i++) {
-            const touch = e.touches[i]
-            const { clientX, clientY } = touch
-
-            if (touch.identifier === touchId) {
-              handler(clientX, clientY, 'move')
-            }
-          }
-          break
-        }
-        case 'touchend':
-        case 'touchcancel': {
-          if (touchId !== null && prev) {
-            const { clientX, clientY } = prev
-            handler(clientX, clientY, 'up')
-          }
-          touchId = null
-          break
-        }
-      }
-    }
-
-    const mouseEventNames = ['mousedown', 'mousemove', 'mouseup'] as const
-    const touchEventNames = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const
-    if (isTouchDevice) {
-      touchEventNames.forEach((eventName) => window.addEventListener(eventName, touchHandler))
-      return () => touchEventNames.forEach((eventName) => window.removeEventListener(eventName, touchHandler))
-    } else {
-      mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
-      return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
-    }
-  }, [lastMinutes, isFinished, setLastMinutes, handleAfterUserInteraction, playSound, setLeftSeconds])
+  useTouch(touchHandler)
 
   return (
-    <div className={`App ${isFinished ? 'finished' : ''}`}>
+    <div className={`App ${finished ? 'finished' : ''}`}>
       <div className="clock__container">
         <div className="clock__axis" />
         <div className="clock__indicator__wrapper">
@@ -255,7 +189,7 @@ const App = () => {
           className="clock__progress__wrapper"
           style={{
             transform: enabled && !editing ? 'scale(1)' : 'scale(0.93)',
-            visibility: isFinished ? 'hidden' : 'inherit',
+            visibility: finished ? 'hidden' : 'inherit',
           }}>
           <div className={`clock__progress__left`} ref={clockProcessLeftRef} />
           <div className={`clock__progress__right`} ref={clockProcessRightRef} />
