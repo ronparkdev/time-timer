@@ -3,7 +3,7 @@ import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
 import tickSoundUri from './assets/tick.wav'
-import SoundPlayer, { SoundPlayerElement } from './components/SoundPlayer'
+import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
 import { PointUtils } from './utils/point'
 
@@ -15,8 +15,8 @@ const App = () => {
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
   const [isFinished, setFinished] = useState<boolean>(false)
-  const [isSoundOn, setSoundOn] = useLocalStorage('sound', true)
-  const soundPlayerRef = useRef<SoundPlayerElement>(null)
+  const [isSoundOn, setSoundOn] = useLocalStorage('sound', false)
+  const { play: playSound } = useSound(isSoundOn)
 
   const { toggleTheme } = useTheme()
 
@@ -112,7 +112,7 @@ const App = () => {
             setLeftSeconds(nextLeftSeconds)
 
             if (Math.floor(leftSeconds / 60) !== Math.floor(nextLeftSeconds / 60)) {
-              soundPlayerRef.current?.play()
+              playSound(tickSoundUri)
             }
 
             diff.clientX += Math.abs(clientX - prev.clientX)
@@ -207,7 +207,7 @@ const App = () => {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
       return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
-  }, [isFinished, setLeftSeconds])
+  }, [playSound, isFinished, setLeftSeconds])
 
   return (
     <div className={`App ${isFinished ? 'finished' : ''}`}>
@@ -236,10 +236,14 @@ const App = () => {
         </div>
       </div>
       <div className="button__group">
-        <button className={`button__sound ${isSoundOn ? 'on' : 'off'}`} onClick={() => setSoundOn((prev) => !prev)} />
+        <button
+          className={`button__sound ${isSoundOn ? 'on' : 'off'}`}
+          onClick={() => {
+            setSoundOn((prev) => !prev)
+          }}
+        />
         <button className="button__theme" onClick={toggleTheme} />
       </div>
-      {isSoundOn && <SoundPlayer src={tickSoundUri} maxSoundCount={2} ref={soundPlayerRef} />}
     </div>
   )
 }
