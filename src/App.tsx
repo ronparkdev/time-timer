@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
+import doneSoundUri from './assets/done.wav'
 import tickSoundUri from './assets/tick.wav'
 import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
@@ -83,6 +84,18 @@ const App = () => {
       renderLeftSeconds(lastSeconds)
     }
   }, [enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
+
+  useEffect(() => {
+    if (finished) {
+      playSound(doneSoundUri)
+
+      const t = setInterval(() => {
+        playSound(doneSoundUri)
+      }, 15000)
+
+      return () => clearInterval(t)
+    }
+  }, [finished, playSound])
 
   const touchHandler: TouchHandler = useCallback(
     async ({ clientX, clientY, type, prev, diff }) => {
