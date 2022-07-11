@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import useLocalStorage from 'use-local-storage'
 
 import './App.scss'
+import tickSoundUri from './assets/tick.wav'
+import SoundPlayer, { SoundPlayerElement } from './components/SoundPlayer'
 import useTheme from './hooks/useTheme'
 import { PointUtils } from './utils/point'
 
@@ -14,6 +16,7 @@ const App = () => {
   const [editing, setEditing] = useState<boolean>(false)
   const [isFinished, setFinished] = useState<boolean>(false)
   const [isSoundOn, setSoundOn] = useLocalStorage('sound', true)
+  const soundPlayerRef = useRef<SoundPlayerElement>(null)
 
   const { toggleTheme } = useTheme()
 
@@ -108,6 +111,10 @@ const App = () => {
             )
             setLeftSeconds(nextLeftSeconds)
 
+            if (Math.floor(leftSeconds / 60) !== Math.floor(nextLeftSeconds / 60)) {
+              soundPlayerRef.current?.play()
+            }
+
             diff.clientX += Math.abs(clientX - prev.clientX)
             diff.clientY += Math.abs(clientY - prev.clientY)
           }
@@ -158,8 +165,6 @@ const App = () => {
     let touchId: number | null = null
 
     const touchHandler = (e: TouchEvent) => {
-      e.preventDefault()
-
       switch (e.type) {
         case 'touchstart': {
           if (touchId === null) {
@@ -234,6 +239,7 @@ const App = () => {
         <button className={`button__sound ${isSoundOn ? 'on' : 'off'}`} onClick={() => setSoundOn((prev) => !prev)} />
         <button className="button__theme" onClick={toggleTheme} />
       </div>
+      {isSoundOn && <SoundPlayer src={tickSoundUri} maxSoundCount={2} ref={soundPlayerRef} />}
     </div>
   )
 }
