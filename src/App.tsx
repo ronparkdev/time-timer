@@ -151,6 +151,7 @@ const App = () => {
                 renderLeftSeconds,
               )
               playSound(tickSoundUri)
+              setFinished(false)
             }
 
             diff.clientX += Math.abs(clientX - prev.clientX)
@@ -159,6 +160,11 @@ const App = () => {
           break
         }
         case 'up': {
+          const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
+          setEndDate(endDate)
+          setFinished(false)
+          setEditing(false)
+
           if (!editingChangedRef.current) {
             if (finished) {
               await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
@@ -169,10 +175,6 @@ const App = () => {
           } else {
             setEnabled(true)
           }
-          const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
-          setEndDate(endDate)
-          setFinished(false)
-          setEditing(false)
           break
         }
       }
