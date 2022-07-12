@@ -98,18 +98,16 @@ const App = () => {
   }, [finished, playSound])
 
   const touchHandler: TouchHandler = useCallback(
-    async ({ clientX, clientY, type, prev, diff }) => {
+    async ({ clientX, clientY, type, prev }) => {
       if (handleAfterUserInteraction) {
         return
       }
 
       switch (type) {
         case 'down': {
-          const { clientWidth } = document.documentElement
+          const { clientWidth, clientHeight } = document.documentElement
 
-          if (getDistanceFromClientCenter(clientX, clientY) < clientWidth * 0.4) {
-            diff = { clientX: 0, clientY: 0 }
-
+          if (getDistanceFromClientCenter(clientX, clientY) < Math.min(clientWidth, clientHeight) * 0.4) {
             editingLeftSecondsRef.current = endDate
               ? getLeftSecondsFromNow(endDate)
               : getSecondsNearestMinute(lastSeconds)
@@ -121,7 +119,7 @@ const App = () => {
           break
         }
         case 'move': {
-          if (prev) {
+          if (editing) {
             const deg = getDegreeFromClientCenter(clientX, clientY)
             const prevDeg = getDegreeFromClientCenter(prev.clientX, prev.clientY)
             let diffDig = deg - prevDeg
@@ -153,33 +151,32 @@ const App = () => {
               playSound(tickSoundUri)
               setFinished(false)
             }
-
-            diff.clientX += Math.abs(clientX - prev.clientX)
-            diff.clientY += Math.abs(clientY - prev.clientY)
           }
           break
         }
         case 'up': {
-          const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
-          setEndDate(endDate)
-          setFinished(false)
-          setEditing(false)
+          if (editing) {
+            const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
+            setEndDate(endDate)
+            setFinished(false)
+            setEditing(false)
 
-          if (!editingChangedRef.current) {
-            if (finished) {
-              setEnabled(false)
-              await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
+            if (!editingChangedRef.current) {
+              if (finished) {
+                setEnabled(false)
+                await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
+              } else {
+                setEnabled((prev) => !prev)
+              }
             } else {
-              setEnabled((prev) => !prev)
+              setEnabled(true)
             }
-          } else {
-            setEnabled(true)
           }
           break
         }
       }
     },
-    [finished, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
+    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
   )
 
   useTouch(touchHandler)
