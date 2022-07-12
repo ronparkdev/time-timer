@@ -167,8 +167,8 @@ const App = () => {
 
           if (!editingChangedRef.current) {
             if (finished) {
-              await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
               setEnabled(false)
+              await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
             } else {
               setEnabled((prev) => !prev)
             }
