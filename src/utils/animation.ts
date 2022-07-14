@@ -11,15 +11,21 @@ export const EaseFuncs = {
   easeOutQuad,
 } as const
 
-const animate = async (
+const animate = (
   startValue: number,
   targetValue: number,
   duration: number,
   easeFunc: (elapsedTime: number, startValue: number, diffValue: number, duration: number) => number,
   applier: (interpolatedValue: number) => void,
 ) => {
-  return new Promise<void>((resolver) => {
+  let isCanceled = false
+
+  const promise = new Promise<void>((resolver) => {
     const tick = (startTime: number, tickTime: number) => {
+      if (isCanceled) {
+        return
+      }
+
       const elapsedTime = tickTime - startTime
       const isExpired = elapsedTime >= duration
 
@@ -36,20 +42,32 @@ const animate = async (
     }
     requestAnimationFrame((time) => tick(time, time))
   })
+
+  return {
+    promise,
+    cancel() {
+      isCanceled = true
+    },
+  }
 }
 
 // Interpolate the mid value between the start and end values per frame
-const animateObject = async <T extends { [K in keyof T]: number }>(
+const animateObject = <T extends { [K in keyof T]: number }>(
   startValue: T,
   targetValue: T,
   duration: number,
   easeFunc: (elapsedTime: number, startValue: number, diffValue: number, duration: number) => number,
   applier: (interpolatedValue: T) => void,
 ) => {
+  let isCanceled = false
   const fields = Object.keys(startValue) as (keyof T)[]
 
-  return new Promise<void>((resolver) => {
+  const promise = new Promise<void>((resolver) => {
     const tick = (startTime: number, tickTime: number) => {
+      if (isCanceled) {
+        return
+      }
+
       const elapsedTime = tickTime - startTime
       const isExpired = elapsedTime >= duration
 
@@ -72,6 +90,13 @@ const animateObject = async <T extends { [K in keyof T]: number }>(
     }
     requestAnimationFrame((time) => tick(time, time))
   })
+
+  return {
+    promise,
+    cancel() {
+      isCanceled = true
+    },
+  }
 }
 
 export const AnimationUtils = {

@@ -43,6 +43,7 @@ const App = () => {
 
   const { toggleTheme } = useTheme()
 
+  const prevAnimation = useRef<{ cancel(): void } | null>(null)
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
@@ -141,13 +142,15 @@ const App = () => {
             if (lastSeconds !== leftSecondsNearestMinute) {
               editingChangedRef.current = true
               setLastSeconds(leftSecondsNearestMinute)
-              await AnimationUtils.animate(
+              prevAnimation.current?.cancel()
+              const animation = (prevAnimation.current = AnimationUtils.animate(
                 lastSeconds,
                 leftSecondsNearestMinute,
                 100,
                 EaseFuncs.easeInQuad,
                 renderLeftSeconds,
-              )
+              ))
+              await animation.promise
               playSound(tickSoundUri)
               setFinished(false)
             }
@@ -164,7 +167,15 @@ const App = () => {
             if (!editingChangedRef.current) {
               if (finished) {
                 setEnabled(false)
-                await AnimationUtils.animate(0, lastSeconds, 500, EaseFuncs.easeInQuad, renderLeftSeconds)
+                prevAnimation.current?.cancel()
+                const animation = (prevAnimation.current = AnimationUtils.animate(
+                  0,
+                  lastSeconds,
+                  500,
+                  EaseFuncs.easeInQuad,
+                  renderLeftSeconds,
+                ))
+                await animation.promise
               } else {
                 setEnabled((prev) => !prev)
               }
