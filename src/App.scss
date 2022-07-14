@@ -27,7 +27,7 @@ body {
   margin: 0; 
   height: 100%;
   overflow: hidden;
-  overscroll-behavior-y: none;
+  position: fixed;
 }
 body {
   transition: background-color ease 0.3s, color ease 0.3s;
