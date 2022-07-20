@@ -150,8 +150,8 @@ const App = () => {
                 EaseFuncs.easeInQuad,
                 renderLeftSeconds,
               ))
-              await animation.promise
               playSound(tickSoundUri)
+              await animation.promise
               setFinished(false)
             }
           }
