@@ -205,7 +205,7 @@ const App = () => {
   useTouch(touchHandler)
 
   return (
-    <div className={`App ${finished ? 'finished' : ''}`}>
+    <div className={`app ${finished ? 'finished' : ''}`}>
       <div className="clock__container">
         <div className="clock__axis" />
         <div className="clock__indicator__wrapper">
@@ -240,7 +240,7 @@ const App = () => {
         <button className="button__theme" onClick={toggleTheme} />
       </div>
       {handleAfterUserInteraction && (
-        <div className="guide_user_interaction" onClick={() => handleAfterUserInteraction()}>
+        <div className="guide-user-interaction" onClick={() => handleAfterUserInteraction()}>
           Click to play
         </div>
       )}

@@ -1,4 +1,4 @@
-@import 'sprite-mixin.scss';
+@import "sprite-mixin.scss";
 
 body,
 body[data-theme="light"] {
@@ -6,14 +6,14 @@ body[data-theme="light"] {
   --font-color: #1b1e23;
   --left-time-color: red;
   --left-time-rgb: 255, 0, 0;
-  --feature-color : #4b9aaa;
+  --feature-color: #4b9aaa;
 }
 body[data-theme="dark"] {
   --bg-color: #1b1e23;
   --font-color: #fff;
   --left-time-color: red;
   --left-time-rgb: 255, 0, 0;
-  --feature-color : #4b9aaa;
+  --feature-color: #4b9aaa;
 }
 
 $size: 80vmin;
@@ -24,32 +24,34 @@ $small-indicator-height: 0.003;
 
 html,
 body {
-  margin: 0; 
-  width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
   position: fixed;
+  width: 100%;
 }
 body {
-  transition: background-color ease 0.3s, color ease 0.3s;
   background: var(--bg-color);
-  font-family: sans-serif;
   color: var(--font-color);
+  font-family: sans-serif;
+  transition: background-color ease 0.3s, color ease 0.3s;
 }
-button{
-  background: inherit; 
-  border:none; 
-  box-shadow:none; 
-  border-radius:0; 
-  padding:0; 
-  overflow:visible; 
+button {
+  background: inherit;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  padding: 0;
 }
 
 @keyframes blinking-background {
   0%, 40% {
+    /* stylelint-disable-next-line color-function-notation */
     background-color: rgba(var(--left-time-rgb), 0);
   }
   50%, 90% {
+    /* stylelint-disable-next-line color-function-notation */
     background-color: rgba(var(--left-time-rgb), 0.5);
   }
 }
@@ -58,12 +60,12 @@ button{
   height: 100%;
 }
 
-.App {
+.app {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   height: 100%;
+  justify-content: center;
   user-select: none;
 
   &.finished {
@@ -73,89 +75,91 @@ button{
 
 .clock {
   &__container {
-    height: $size;
-    width: $size;
     display: flex;
+    height: $size;
     justify-content: center;
     position: relative;
+    width: $size;
   }
   &__indicator__wrapper {
-    transform: translate(#{($size / 2)}, #{($size / 2)});
+    transform: translate(calc(#{$size} / 2), calc(#{$size} / 2));
   }
   &__indicator {
-    position: absolute;
-    width: #{($size * $small-indicator-width)};
-    left: #{-($size * $small-indicator-width / 2)};
-    height: #{($size * $small-indicator-height)};
     background: var(--feature-color);
+    height: calc(#{$size} * #{$small-indicator-height});
+    left: calc(-#{$size} * #{$small-indicator-width} / 2);
+    position: absolute;
+    width: calc(#{$size} * #{$small-indicator-width});
     z-index: 2;
     &:nth-of-type(5n) {
-      width: #{($size * $big-indicator-width)};
-      left: #{-($size * $big-indicator-width / 2)};
-      height: #{($size * $big-indicator-height)};
+      height: calc(#{$size} * #{$big-indicator-height});
+      left: calc(-#{$size} * #{$big-indicator-width} / 2);
+      width: calc(#{$size} * #{$big-indicator-width});
     }
+
     @for $i from 1 through 60 {
       &:nth-of-type(#{$i}) {
-        transform: rotateZ(calc(6deg * #{$i})) translateX(-#{($size * 0.5)});
+        transform: rotateZ(calc(6deg * #{$i})) translateX(calc(#{$size} * -0.5));
       }
     }
   }
   &__label__wrapper {
-    transform: translate(#{($size / 2)}, #{($size / 2)});
+    transform: translate(calc(#{$size} / 2), calc(#{$size} / 2));
   }
   &__label {
+    font-size: calc(#{$size} * 0.055);
     position: absolute;
-    font-size: #{($size * 0.055)};
+
     @for $i from 1 through 60 {
       &:nth-of-type(#{$i}) {
-        transform: 
-          translateX(-50%) 
-          translateY(-50%) 
-          rotateZ(calc(30deg - 30deg * #{$i})) 
-          translateY(-#{($size * 0.56)}) 
+        transform:
+          translateX(-50%)
+          translateY(-50%)
+          rotateZ(calc(30deg - 30deg * #{$i}))
+          translateY(calc(#{$size} * -0.56))
           rotateZ(calc(30deg * #{$i} - 30deg));
       }
     }
   }
   &__axis {
-    position: absolute;
     background: var(--feature-color);
-    width: 5px;
-    height: 5px;
     border-radius: 3px;
+    height: 5px;
+    left: calc(#{$size} * 0.5 - 1 * 0.5);
+    position: absolute;
+    top: calc(#{$size} * 0.5);
+    width: 5px;
     z-index: 4;
-    top: #{($size * 0.5)};
-    left: #{($size * 0.5 - 1 * 0.5)};
   }
   &__progress__wrapper {
-    transition: transform ease 0.3s;
     opacity: 0.6;
+    transition: transform ease 0.3s;
   }
   &__progress__left, &__progress__right {
-    width: #{($size / 2)};
-    height: $size;
-    top: 2.5px;
     display: inline-block;
-    position: relative;
+    height: $size;
     overflow: hidden;
+    position: relative;
+    top: 2.5px;
+    width: calc(#{$size} / 2);
     z-index: 3;
-    &:before {
-      height: inherit;
-      width: inherit;
-      position: absolute;
-      content: "";
+    &::before {
       background-color: var(--left-time-color);
+      content: "";
+      height: inherit;
+      position: absolute;
+      width: inherit;
     }
   }
-  &__progress__left:before {
-    border-radius: #{($size / 2)} 0 0 #{($size / 2)};
+  &__progress__left::before {
+    border-radius: calc(#{$size} / 2) 0 0 calc(#{$size} / 2);
+    transform: rotate(#{var(--degree)});
     transform-origin: 100% 50%;
-    transform: rotate(#{var(--degree)});
   }
-  &__progress__right:before {
-    border-radius: 0 #{($size / 2)} #{($size / 2)} 0;
-    transform-origin: 0 50%;
+  &__progress__right::before {
+    border-radius: 0 calc(#{$size} / 2) calc(#{$size} / 2) 0;
     transform: rotate(#{var(--degree)});
+    transform-origin: 0 50%;
   }
 }
 
@@ -167,15 +171,15 @@ button{
 
 .button {
   &__group {
-    position: fixed;
-    margin: #{($size * 0.03)};
     bottom: 0;
+    margin: calc(#{$size} * 0.03);
+    position: fixed;
     right: 0;
-    user-select:contain;
+    user-select: contain;
   }
   &__sound {
-    width: #{($size * 0.08)};
-    height: #{($size * 0.08)};
+    height: calc(#{$size} * 0.08);
+    width: calc(#{$size} * 0.08);
     &.on {
       @include img-volume-black;
     }
@@ -184,14 +188,15 @@ button{
     }
   }
   &__theme {
-    margin-left: #{($size * 0.03)};
-    width: #{($size * 0.08)};
-    height: #{($size * 0.08)};
+    height: calc(#{$size} * 0.08);
+    margin-left: calc(#{$size} * 0.03);
+    width: calc(#{$size} * 0.08);
+
     @include img-light-black;
   }
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
   .button {
     &__sound {
       &.on {
@@ -207,16 +212,16 @@ button{
   }
 }
 
-.guide_user_interaction {
-  position: absolute;
-  display: flex;
-  text-align: center;
-  justify-content: center;
+.guide-user-interaction {
   align-items: center;
-  top: 0;
+  background: rgb(0 0 0 / 40%);
   bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(black, 0.4);
   color: white;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 0;
 }
