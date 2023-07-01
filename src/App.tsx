@@ -112,6 +112,10 @@ const App = () => {
       }, 15000)
 
       return () => clearInterval(t)
+    } else {
+      if (EnvironmentUtils.getBuildTarget() === 'extension') {
+        ExtensionUtils.unsetDoneBadge()
+      }
     }
   }, [finished, playSound])
 

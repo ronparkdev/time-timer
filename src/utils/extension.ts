@@ -5,8 +5,10 @@ declare namespace whale {
   }
 }
 
+const canUseWhaleSidebar = () => typeof whale !== 'undefined' && typeof whale.sidebarAction !== 'undefined'
+
 const setDoneBadge = () => {
-  if (typeof whale === 'undefined' || typeof whale.sidebarAction === 'undefined') {
+  if (!canUseWhaleSidebar()) {
     return
   }
 
@@ -19,6 +21,17 @@ const setDoneBadge = () => {
   })
 }
 
+const unsetDoneBadge = () => {
+  if (!canUseWhaleSidebar()) {
+    return
+  }
+
+  whale.sidebarAction.setBadgeText({
+    text: '',
+  })
+}
+
 export const ExtensionUtils = {
   setDoneBadge,
+  unsetDoneBadge,
 }
