@@ -4,10 +4,11 @@ import useLocalStorage from 'use-local-storage'
 import './App.scss'
 import doneSoundUri from './assets/done.wav'
 import tickSoundUri from './assets/tick.wav'
+import useAnimation from './hooks/useAnimation'
 import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
 import useTouch, { TouchHandler } from './hooks/useTouch'
-import { AnimationUtils, EaseFuncs } from './utils/animation'
+import { EaseFuncs } from './utils/animation'
 import { EnvironmentUtils } from './utils/env'
 import { ExtensionUtils } from './utils/extension'
 import { PointUtils } from './utils/point'
@@ -46,7 +47,6 @@ const App = () => {
 
   const { toggleTheme } = useTheme()
 
-  const prevAnimation = useRef<{ cancel(): void } | null>(null)
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
@@ -66,6 +66,8 @@ const App = () => {
       rightStyle?.setProperty('--degree', rightDeg)
     }
   }, [])
+
+  const animateLeftSeconds = useAnimation(renderLeftSeconds)
 
   // Update leftSeconds and badge
   useEffect(() => {
@@ -165,18 +167,14 @@ const App = () => {
               editingChangedRef.current = true
               setEnabled(false)
               setLastSeconds(leftSecondsNearestMinute)
-              prevAnimation.current?.cancel()
-
-              const animation = (prevAnimation.current = AnimationUtils.animate(
-                lastSeconds,
-                leftSecondsNearestMinute,
-                100,
-                EaseFuncs.easeInQuad,
-                renderLeftSeconds,
-              ))
 
               playSound(tickSoundUri)
-              await animation.promise
+              await animateLeftSeconds({
+                start: lastSeconds,
+                end: leftSecondsNearestMinute,
+                duration: 100,
+                easeFunc: EaseFuncs.easeInQuad,
+              })
             }
           }
           break
@@ -190,15 +188,12 @@ const App = () => {
             if (!editingChangedRef.current) {
               if (finished) {
                 setEnabled(false)
-                prevAnimation.current?.cancel()
-                const animation = (prevAnimation.current = AnimationUtils.animate(
-                  0,
-                  lastSeconds,
-                  500,
-                  EaseFuncs.easeInQuad,
-                  renderLeftSeconds,
-                ))
-                await animation.promise
+                await animateLeftSeconds({
+                  start: 0,
+                  end: lastSeconds,
+                  duration: 500,
+                  easeFunc: EaseFuncs.easeInQuad,
+                })
               } else {
                 setEnabled((prev) => !prev)
               }
@@ -210,7 +205,16 @@ const App = () => {
         }
       }
     },
-    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
+    [
+      finished,
+      editing,
+      endDate,
+      lastSeconds,
+      handleAfterUserInteraction,
+      playSound,
+      setLastSeconds,
+      animateLeftSeconds,
+    ],
   )
 
   useTouch({ handler: touchHandler, forceUseMouse: EnvironmentUtils.getBuildTarget() === 'extension' })

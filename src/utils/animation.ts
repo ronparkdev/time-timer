@@ -1,5 +1,5 @@
 // Reference about ease : https://easings.net
-type EaseFunc = (elapsedTime: number, startValue: number, diffValue: number, duration: number) => number
+export type EaseFunc = (elapsedTime: number, startValue: number, diffValue: number, duration: number) => number
 
 const linearTween: EaseFunc = (t, b, c, d) => (c * t) / d + b
 const easeInQuad: EaseFunc = (t, b, c, d) => c * (t / d) * (t / d) + b
