@@ -101,10 +101,21 @@ const App = () => {
   }, [isSpeedUp, enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
 
   useEffect(() => {
-    if (finished) {
-      if (EnvironmentUtils.getBuildTarget() === 'extension') {
-        ExtensionUtils.setDoneBadge()
+    if (EnvironmentUtils.getBuildTarget() === 'extension') {
+      if (finished) {
+        ExtensionUtils.setBadgeText('🏁')
+        ExtensionUtils.setBadgeColor('#FF5A5F')
+      } else if (enabled) {
+        ExtensionUtils.setBadgeText(`${Math.ceil(lastSeconds / 60)}m`)
+        ExtensionUtils.setBadgeColor('#00C853')
+      } else {
+        ExtensionUtils.setBadgeText('')
       }
+    }
+  }, [finished, lastSeconds, enabled])
+
+  useEffect(() => {
+    if (finished) {
       playSound(doneSoundUri)
 
       const t = setInterval(() => {
@@ -112,10 +123,6 @@ const App = () => {
       }, 15000)
 
       return () => clearInterval(t)
-    } else {
-      if (EnvironmentUtils.getBuildTarget() === 'extension') {
-        ExtensionUtils.unsetDoneBadge()
-      }
     }
   }, [finished, playSound])
 

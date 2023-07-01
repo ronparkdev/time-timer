@@ -7,31 +7,27 @@ declare namespace whale {
 
 const canUseWhaleSidebar = () => typeof whale !== 'undefined' && typeof whale.sidebarAction !== 'undefined'
 
-const setDoneBadge = () => {
+const setBadgeText = (text: string) => {
   if (!canUseWhaleSidebar()) {
     return
   }
 
   whale.sidebarAction.setBadgeText({
-    text: '🎉',
-  })
-
-  whale.sidebarAction.setBadgeBackgroundColor({
-    color: `#ff0000`,
+    text,
   })
 }
 
-const unsetDoneBadge = () => {
+const setBadgeColor = (color: string) => {
   if (!canUseWhaleSidebar()) {
     return
   }
 
-  whale.sidebarAction.setBadgeText({
-    text: '',
+  whale.sidebarAction.setBadgeBackgroundColor({
+    color,
   })
 }
 
 export const ExtensionUtils = {
-  setDoneBadge,
-  unsetDoneBadge,
+  setBadgeText,
+  setBadgeColor,
 }
