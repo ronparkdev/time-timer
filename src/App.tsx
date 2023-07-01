@@ -32,6 +32,7 @@ const getDistanceFromClientCenter = (clientX: number, clientY: number) => {
 
 const App = () => {
   const [lastSeconds, setLastSeconds] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
+  const [seconds, setSeconds] = useState<number>(lastSeconds)
   const [endDate, setEndDate] = useState<Date | null>(null)
 
   const [enabled, setEnabled] = useState<boolean>(false)
@@ -49,8 +50,8 @@ const App = () => {
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
-  const renderLeftSeconds = useCallback((leftSeconds: number) => {
-    const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
+  const renderSeconds = useCallback((seconds: number) => {
+    const progress = Math.max(0, Math.min(3600, seconds)) / 3600
 
     const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
     const rightDeg = `${Math.min(0.5, 1 - progress) * 360}deg`
@@ -66,37 +67,48 @@ const App = () => {
     }
   }, [])
 
+  // Update leftSeconds and badge
   useEffect(() => {
-    renderLeftSeconds(lastSeconds)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [renderLeftSeconds])
+    renderSeconds(seconds)
 
+    if (!enabled) {
+      ExtensionUtils.setBadgeText('')
+    } else if (seconds > 0) {
+      ExtensionUtils.setBadgeText(`${Math.ceil(seconds / 60)}m`)
+      ExtensionUtils.setBadgeColor('#00C853')
+    } else {
+      ExtensionUtils.setBadgeText('🏁')
+      ExtensionUtils.setBadgeColor('#FF5A5F')
+    }
+  }, [seconds, enabled, renderSeconds])
+
+  // Tick per seconds
   useEffect(() => {
     if (enabled && endDate && !editing) {
-      const t = setInterval(() => {
+      const update = () => {
         const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate))
 
         const isFinished = leftSeconds <= 0
 
         if (isFinished) {
+          setSeconds(0)
           setFinished(true)
-          ExtensionUtils.setBadgeText('🏁')
-          ExtensionUtils.setBadgeColor('#FF5A5F')
           return
         }
 
-        renderLeftSeconds(leftSeconds)
-        ExtensionUtils.setBadgeText(`${Math.ceil(leftSeconds / 60)}m`)
-        ExtensionUtils.setBadgeColor('#00C853')
-      }, 1000)
+        setSeconds(leftSeconds)
+      }
 
+      update()
+
+      const t = setInterval(update, 1000)
       return () => clearInterval(t)
     } else {
-      renderLeftSeconds(lastSeconds)
-      ExtensionUtils.setBadgeText('')
+      setSeconds(lastSeconds)
     }
-  }, [enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
+  }, [enabled, editing, endDate, lastSeconds])
 
+  // Play finished sound
   useEffect(() => {
     if (finished) {
       playSound(doneSoundUri)
@@ -159,7 +171,7 @@ const App = () => {
                 leftSecondsNearestMinute,
                 100,
                 EaseFuncs.easeInQuad,
-                renderLeftSeconds,
+                renderSeconds,
               ))
               playSound(tickSoundUri)
               await animation.promise
@@ -184,7 +196,7 @@ const App = () => {
                   lastSeconds,
                   500,
                   EaseFuncs.easeInQuad,
-                  renderLeftSeconds,
+                  renderSeconds,
                 ))
                 await animation.promise
               } else {
@@ -198,7 +210,7 @@ const App = () => {
         }
       }
     },
-    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
+    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderSeconds],
   )
 
   useTouch({ handler: touchHandler, forceUseMouse: EnvironmentUtils.getBuildTarget() === 'extension' })
