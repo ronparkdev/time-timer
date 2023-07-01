@@ -51,6 +51,8 @@ const App = () => {
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
+  const lastMinutes = Math.ceil(lastSeconds / 60)
+
   useEffect(() => {
     if (window.location.pathname === '/speedup') {
       setSpeedUp(true)
@@ -106,13 +108,13 @@ const App = () => {
         ExtensionUtils.setBadgeText('🏁')
         ExtensionUtils.setBadgeColor('#FF5A5F')
       } else if (enabled) {
-        ExtensionUtils.setBadgeText(`${Math.ceil(lastSeconds / 60)}m`)
+        ExtensionUtils.setBadgeText(`${lastMinutes}m`)
         ExtensionUtils.setBadgeColor('#00C853')
       } else {
         ExtensionUtils.setBadgeText('')
       }
     }
-  }, [finished, lastSeconds, enabled])
+  }, [finished, lastMinutes, enabled])
 
   useEffect(() => {
     if (finished) {
