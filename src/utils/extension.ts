@@ -13,7 +13,7 @@ const setDoneBadge = () => {
   }
 
   whale.sidebarAction.setBadgeText({
-    text: 'Done!',
+    text: '🎉',
   })
 
   whale.sidebarAction.setBadgeBackgroundColor({
