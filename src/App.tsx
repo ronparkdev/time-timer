@@ -43,8 +43,6 @@ const App = () => {
   const [isSoundOn, setSoundOn] = useLocalStorage('sound', false)
   const { play: playSound, handleAfterUserInteraction } = useSound(isSoundOn)
 
-  const [isSpeedUp, setSpeedUp] = useState<boolean>(false)
-
   const { toggleTheme } = useTheme()
 
   const prevAnimation = useRef<{ cancel(): void } | null>(null)
@@ -52,12 +50,6 @@ const App = () => {
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
   const lastMinutes = Math.ceil(lastSeconds / 60)
-
-  useEffect(() => {
-    if (window.location.pathname === '/speedup') {
-      setSpeedUp(true)
-    }
-  }, [setSpeedUp])
 
   const renderLeftSeconds = useCallback((leftSeconds: number) => {
     const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
@@ -83,24 +75,19 @@ const App = () => {
 
   useEffect(() => {
     if (enabled && endDate && !editing) {
-      let tickCount = 0
-
-      const timeInterval = isSpeedUp ? 5 : 1000
-
       const t = setInterval(() => {
-        const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate) - (isSpeedUp ? tickCount : 0))
+        const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate))
         if (leftSeconds <= 0) {
           setFinished(true)
         }
         renderLeftSeconds(leftSeconds)
-        tickCount += 1
-      }, timeInterval)
+      }, 1000)
 
       return () => clearInterval(t)
     } else {
       renderLeftSeconds(lastSeconds)
     }
-  }, [isSpeedUp, enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
+  }, [enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
 
   useEffect(() => {
     if (EnvironmentUtils.getBuildTarget() === 'extension') {
