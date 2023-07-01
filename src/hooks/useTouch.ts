@@ -12,14 +12,14 @@ export type TouchHandler = (params: {
   diff: TouchPoint
 }) => void
 
-const useTouch = (handler: TouchHandler) => {
+const useTouch = ({ handler, forceUseMouse }: { handler: TouchHandler; forceUseMouse: boolean }) => {
   const isMouseDownRef = useRef<boolean>(false)
   const touchIdRef = useRef<number | null>(null)
   const prevPointRef = useRef<TouchPoint>(TOUCH_POINT_DEFAULT)
   const diffPointRef = useRef<TouchPoint>(TOUCH_POINT_DEFAULT)
 
   useEffect(() => {
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    const isTouchDevice = !forceUseMouse && ('ontouchstart' in window || navigator.maxTouchPoints > 0)
 
     const mouseHandler = (e: MouseEvent) => {
       const { clientX, clientY } = e
@@ -55,6 +55,7 @@ const useTouch = (handler: TouchHandler) => {
     }
 
     const touchHandler = (e: TouchEvent) => {
+      console.log(e.type)
       switch (e.type) {
         case 'touchstart': {
           if (touchIdRef.current === null) {
@@ -108,7 +109,7 @@ const useTouch = (handler: TouchHandler) => {
       mouseEventNames.forEach((eventName) => window.addEventListener(eventName, mouseHandler))
       return () => mouseEventNames.forEach((eventName) => window.removeEventListener(eventName, mouseHandler))
     }
-  }, [handler])
+  }, [handler, forceUseMouse])
 }
 
 export default useTouch

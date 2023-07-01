@@ -207,7 +207,7 @@ const App = () => {
     [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
   )
 
-  useTouch(touchHandler)
+  useTouch({ handler: touchHandler, forceUseMouse: EnvironmentUtils.getBuildTarget() === 'extension' })
 
   return (
     <div className={`app ${finished ? 'finished' : ''}`}>
