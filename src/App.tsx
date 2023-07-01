@@ -37,7 +37,7 @@ const App = () => {
 
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
-  const [finished, setFinished] = useState<boolean>(false)
+  const finished = enabled && seconds <= 0
 
   const editingLeftSecondsRef = useRef<number>(0)
   const editingChangedRef = useRef<boolean>(false)
@@ -92,7 +92,6 @@ const App = () => {
 
         if (isFinished) {
           setSeconds(0)
-          setFinished(true)
           return
         }
 
@@ -164,8 +163,10 @@ const App = () => {
 
             if (lastSeconds !== leftSecondsNearestMinute) {
               editingChangedRef.current = true
+              setEnabled(false)
               setLastSeconds(leftSecondsNearestMinute)
               prevAnimation.current?.cancel()
+
               const animation = (prevAnimation.current = AnimationUtils.animate(
                 lastSeconds,
                 leftSecondsNearestMinute,
@@ -173,9 +174,9 @@ const App = () => {
                 EaseFuncs.easeInQuad,
                 renderSeconds,
               ))
+
               playSound(tickSoundUri)
               await animation.promise
-              setFinished(false)
             }
           }
           break
@@ -184,7 +185,6 @@ const App = () => {
           if (editing) {
             const endDate = new Date(new Date().getTime() + lastSeconds * 1000)
             setEndDate(endDate)
-            setFinished(false)
             setEditing(false)
 
             if (!editingChangedRef.current) {
