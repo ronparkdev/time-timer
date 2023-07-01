@@ -36,6 +36,7 @@ const App = () => {
   const [seconds, setLeftSeconds] = useState<number>(lastSeconds)
   const [endDate, setEndDate] = useState<Date | null>(null)
 
+  const [visible, setVisible] = useState<boolean>(true)
   const [enabled, setEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
   const finished = enabled && seconds <= 0
@@ -71,7 +72,9 @@ const App = () => {
 
   // Update leftSeconds and badge
   useEffect(() => {
-    renderLeftSeconds(seconds)
+    if (visible) {
+      renderLeftSeconds(seconds)
+    }
 
     if (!enabled) {
       ExtensionUtils.setBadgeText('')
@@ -82,7 +85,7 @@ const App = () => {
       ExtensionUtils.setBadgeText('🏁')
       ExtensionUtils.setBadgeColor('#FF5A5F')
     }
-  }, [seconds, enabled, renderLeftSeconds])
+  }, [visible, seconds, enabled, renderLeftSeconds])
 
   // Tick per seconds
   useEffect(() => {
@@ -121,6 +124,16 @@ const App = () => {
       return () => clearInterval(t)
     }
   }, [finished, playSound])
+
+  // Check is visible (do not update if no visible)
+  useEffect(() => {
+    const handler = () => {
+      setVisible(document.visibilityState === `visible`)
+    }
+
+    document.addEventListener(`visibilitychange`, handler)
+    return () => document.removeEventListener(`visibilitychange`, handler)
+  }, [])
 
   const touchHandler: TouchHandler = useCallback(
     async ({ clientX, clientY, type, prev }) => {
