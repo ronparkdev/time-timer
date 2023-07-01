@@ -32,7 +32,7 @@ const getDistanceFromClientCenter = (clientX: number, clientY: number) => {
 
 const App = () => {
   const [lastSeconds, setLastSeconds] = useLocalStorage('last', DEFAULT_LEFT_SECONDS)
-  const [seconds, setSeconds] = useState<number>(lastSeconds)
+  const [seconds, setLeftSeconds] = useState<number>(lastSeconds)
   const [endDate, setEndDate] = useState<Date | null>(null)
 
   const [enabled, setEnabled] = useState<boolean>(false)
@@ -50,7 +50,7 @@ const App = () => {
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
-  const renderSeconds = useCallback((seconds: number) => {
+  const renderLeftSeconds = useCallback((seconds: number) => {
     const progress = Math.max(0, Math.min(3600, seconds)) / 3600
 
     const leftDeg = `${Math.max(0, 0.5 - progress) * 360}deg`
@@ -69,7 +69,7 @@ const App = () => {
 
   // Update leftSeconds and badge
   useEffect(() => {
-    renderSeconds(seconds)
+    renderLeftSeconds(seconds)
 
     if (!enabled) {
       ExtensionUtils.setBadgeText('')
@@ -80,7 +80,7 @@ const App = () => {
       ExtensionUtils.setBadgeText('🏁')
       ExtensionUtils.setBadgeColor('#FF5A5F')
     }
-  }, [seconds, enabled, renderSeconds])
+  }, [seconds, enabled, renderLeftSeconds])
 
   // Tick per seconds
   useEffect(() => {
@@ -91,11 +91,11 @@ const App = () => {
         const isFinished = leftSeconds <= 0
 
         if (isFinished) {
-          setSeconds(0)
+          setLeftSeconds(0)
           return
         }
 
-        setSeconds(leftSeconds)
+        setLeftSeconds(leftSeconds)
       }
 
       update()
@@ -103,7 +103,7 @@ const App = () => {
       const t = setInterval(update, 1000)
       return () => clearInterval(t)
     } else {
-      setSeconds(lastSeconds)
+      setLeftSeconds(lastSeconds)
     }
   }, [enabled, editing, endDate, lastSeconds])
 
@@ -172,7 +172,7 @@ const App = () => {
                 leftSecondsNearestMinute,
                 100,
                 EaseFuncs.easeInQuad,
-                renderSeconds,
+                renderLeftSeconds,
               ))
 
               playSound(tickSoundUri)
@@ -196,7 +196,7 @@ const App = () => {
                   lastSeconds,
                   500,
                   EaseFuncs.easeInQuad,
-                  renderSeconds,
+                  renderLeftSeconds,
                 ))
                 await animation.promise
               } else {
@@ -210,7 +210,7 @@ const App = () => {
         }
       }
     },
-    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderSeconds],
+    [finished, editing, endDate, lastSeconds, handleAfterUserInteraction, playSound, setLastSeconds, renderLeftSeconds],
   )
 
   useTouch({ handler: touchHandler, forceUseMouse: EnvironmentUtils.getBuildTarget() === 'extension' })
