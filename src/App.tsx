@@ -49,8 +49,6 @@ const App = () => {
   const clockProcessLeftRef = useRef<HTMLDivElement>(null)
   const clockProcessRightRef = useRef<HTMLDivElement>(null)
 
-  const lastMinutes = Math.ceil(lastSeconds / 60)
-
   const renderLeftSeconds = useCallback((leftSeconds: number) => {
     const progress = Math.max(0, Math.min(3600, leftSeconds)) / 3600
 
@@ -77,31 +75,27 @@ const App = () => {
     if (enabled && endDate && !editing) {
       const t = setInterval(() => {
         const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate))
-        if (leftSeconds <= 0) {
+
+        const isFinished = leftSeconds <= 0
+
+        if (isFinished) {
           setFinished(true)
+          ExtensionUtils.setBadgeText('🏁')
+          ExtensionUtils.setBadgeColor('#FF5A5F')
+          return
         }
+
         renderLeftSeconds(leftSeconds)
+        ExtensionUtils.setBadgeText(`${Math.ceil(leftSeconds / 60)}m`)
+        ExtensionUtils.setBadgeColor('#00C853')
       }, 1000)
 
       return () => clearInterval(t)
     } else {
       renderLeftSeconds(lastSeconds)
+      ExtensionUtils.setBadgeText('')
     }
   }, [enabled, editing, endDate, lastSeconds, setFinished, renderLeftSeconds])
-
-  useEffect(() => {
-    if (EnvironmentUtils.getBuildTarget() === 'extension') {
-      if (finished) {
-        ExtensionUtils.setBadgeText('🏁')
-        ExtensionUtils.setBadgeColor('#FF5A5F')
-      } else if (enabled) {
-        ExtensionUtils.setBadgeText(`${lastMinutes}m`)
-        ExtensionUtils.setBadgeColor('#00C853')
-      } else {
-        ExtensionUtils.setBadgeText('')
-      }
-    }
-  }, [finished, lastMinutes, enabled])
 
   useEffect(() => {
     if (finished) {
