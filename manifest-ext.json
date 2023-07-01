@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Tiny Time Timer",
+  "description": "This extension shows a timer",
+  "version": "1.0",
+  "permissions": [
+      "activeTab"
+  ],
+  "sidebar_action": {
+    "default_page": "index.html",
+    "default_icon": {
+        "192": "logo192.png",
+        "512": "logo512.png"
+    },
+    "default_title": "Tiny Time Timer"
+  }
+}

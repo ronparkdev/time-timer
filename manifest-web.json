@@ -21,13 +21,5 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff",
-  "sidebar_action": {
-    "default_page": "index.html",
-    "default_icon": {
-        "192": "logo192.png",
-        "512": "logo512.png"
-    },
-    "default_title": "Tiny Time Timer"
-  }
+  "background_color": "#ffffff"
 }
