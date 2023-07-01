@@ -8,6 +8,8 @@ import useSound from './hooks/useSound'
 import useTheme from './hooks/useTheme'
 import useTouch, { TouchHandler } from './hooks/useTouch'
 import { AnimationUtils, EaseFuncs } from './utils/animation'
+import { EnvironmentUtils } from './utils/env'
+import { ExtensionUtils } from './utils/extension'
 import { PointUtils } from './utils/point'
 
 const MIN_LEFT_SECONDS = 60 * 1
@@ -100,6 +102,9 @@ const App = () => {
 
   useEffect(() => {
     if (finished) {
+      if (EnvironmentUtils.getBuildTarget() === 'extension') {
+        ExtensionUtils.setDoneBadge()
+      }
       playSound(doneSoundUri)
 
       const t = setInterval(() => {
