@@ -70,6 +70,46 @@ const App = () => {
 
   const animateLeftSeconds = useAnimation(renderLeftSeconds)
 
+  const finish = useCallback(() => {
+    playSound(doneSoundUri)
+
+    const iconUrl = 'logo512.png'
+
+    const minutes = Math.ceil(lastSeconds / 60)
+    const messages = [
+      `Did your ${minutes} minutes burn meaningfully? Let's make the next even brighter.`,
+      `Did you conquer your last ${minutes} minutes? Own the next one even more.`,
+      `How productive were your last ${minutes} minutes? Let's aim for even more in the next round.`,
+      `Were your last ${minutes} minutes well spent? Let's make the next half hour count even more.`,
+      `Did you make the most of your last ${minutes} minutes? Let's step up for the next one.`,
+      `How fruitful were your last ${minutes} minutes? Let's harvest even more in the next session.`,
+    ]
+    const [pickedMessage] = messages.sort(() => Math.random() - 0.5)
+
+    switch (EnvironmentUtils.getBuildTarget()) {
+      case 'web': {
+        new Notification('Timer Finished!', {
+          body: pickedMessage,
+          icon: iconUrl,
+        })
+        break
+      }
+
+      case 'extension': {
+        ExtensionUtils.pushNotification({ title: 'Timer Finished!', message: pickedMessage, iconUrl })
+        break
+      }
+    }
+  }, [lastSeconds, playSound])
+
+  useEffect(() => {
+    if (EnvironmentUtils.getBuildTarget() === 'web') {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission()
+      }
+    }
+  }, [])
+
   // Update leftSeconds and badge
   useEffect(() => {
     if (visible) {
@@ -90,40 +130,30 @@ const App = () => {
   // Tick per seconds
   useEffect(() => {
     if (enabled && endDate && !editing) {
+      let t: number = 0
+
       const update = () => {
         const leftSeconds = Math.max(0, getLeftSecondsFromNow(endDate))
 
-        const isFinished = leftSeconds <= 0
+        setLeftSeconds(leftSeconds)
 
+        const isFinished = leftSeconds <= 0
         if (isFinished) {
-          setLeftSeconds(0)
+          finish()
+          window.clearInterval(t)
           return
         }
-
-        setLeftSeconds(leftSeconds)
       }
 
       update()
 
-      const t = setInterval(update, 1000)
-      return () => clearInterval(t)
+      t = window.setInterval(update, 1000)
+
+      return () => window.clearInterval(t)
     } else {
       setLeftSeconds(lastSeconds)
     }
-  }, [enabled, editing, endDate, lastSeconds])
-
-  // Play finished sound
-  useEffect(() => {
-    if (finished) {
-      playSound(doneSoundUri)
-
-      const t = setInterval(() => {
-        playSound(doneSoundUri)
-      }, 15000)
-
-      return () => clearInterval(t)
-    }
-  }, [finished, playSound])
+  }, [enabled, editing, endDate, lastSeconds, finish])
 
   // Check is visible (do not update if no visible)
   useEffect(() => {

@@ -7,6 +7,19 @@ declare namespace whale {
 
 const canUseWhaleSidebar = () => typeof whale !== 'undefined' && typeof whale.sidebarAction !== 'undefined'
 
+const pushNotification = ({ title, message, iconUrl }: { title: string; message: string; iconUrl: string }) => {
+  const opt = {
+    type: 'basic',
+    title,
+    message,
+    iconUrl,
+  } as const
+
+  chrome.notifications.create('timerFinished', opt, function (id) {
+    console.log('Last notification ID:', id)
+  })
+}
+
 const setBadgeText = (text: string) => {
   if (!canUseWhaleSidebar()) {
     return
@@ -28,6 +41,7 @@ const setBadgeColor = (color: string) => {
 }
 
 export const ExtensionUtils = {
+  pushNotification,
   setBadgeText,
   setBadgeColor,
 }
