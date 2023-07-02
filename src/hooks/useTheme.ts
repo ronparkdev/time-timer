@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react'
 import useLocalStorage from 'use-local-storage'
 
 export enum ThemeType {
@@ -17,6 +17,10 @@ const useTheme = () => {
   useLayoutEffect(() => {
     document.body.dataset.theme = theme
   }, [theme])
+
+  useEffect(() => {
+    document.body.classList.add('use-transition')
+  }, [])
 
   const toggleTheme = useCallback(
     () => setTheme((prev) => (prev === ThemeType.DARK ? ThemeType.LIGHT : ThemeType.DARK)),
