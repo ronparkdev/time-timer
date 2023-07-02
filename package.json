@@ -10,10 +10,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "clean": "rm -rf ./build",
     "dev": "react-scripts start",
-    "build": "npm run clean && react-scripts build && cp ./manifest-web.json ./build/manifest.json",
-    "build:ext": "npm run clean && cross-env REACT_APP_BUILD_TARGET=EXT react-scripts build && cp ./manifest-ext.json ./build/manifest.json",
+    "build:web": "rm -rf ./build-web && cross-env REACT_APP_BUILD_TARGET=WEB BUILD_PATH='./build-web' react-scripts build && cp ./manifest-web.json ./build-web/manifest.json",
+    "build:ext": "rm -rf ./build-ext && cross-env REACT_APP_BUILD_TARGET=EXT BUILD_PATH='./build-ext' react-scripts build && cp ./manifest-ext.json ./build-ext/manifest.json",
     "start": "cross-env DEV_SERVER_PORT=4000 DEV_SERVER_ROOT=./build dev-server",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

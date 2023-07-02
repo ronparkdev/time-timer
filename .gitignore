@@ -10,6 +10,8 @@
 
 # production
 /build
+/build-web
+/build-ext
 
 # misc
 .DS_Store
