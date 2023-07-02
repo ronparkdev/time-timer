@@ -19,7 +19,9 @@ const useTheme = () => {
   }, [theme])
 
   useEffect(() => {
-    document.body.classList.add('use-transition')
+    setTimeout(() => {
+      document.body.classList.add('use-transition')
+    }, 1000)
   }, [])
 
   const toggleTheme = useCallback(
